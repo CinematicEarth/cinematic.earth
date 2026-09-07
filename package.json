@@ -1,15 +1,15 @@
 {
-  "name": "meditation.surf",
+  "name": "lakotaloop.stream",
   "version": "1.0.0",
   "type": "module",
-  "description": "Stunning surf cinematography from SwellPatrol",
+  "description": "Halloween haunted house at Lakota Loop",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eigendude/meditation.surf.git"
+    "url": "git+https://github.com/LakotaLoop/lakotaloop.stream.git"
   },
-  "homepage": "https://meditation.surf",
+  "homepage": "https://lakotaloop.stream",
   "bugs": {
-    "url": "https://github.com/eigendude/meditation.surf/issues"
+    "url": "https://github.com/LakotaLoop/lakotaloop.stream/issues"
   },
   "author": "Garrett Brown <eigendebugger@gmail.com>",
   "license": "AGPL-3.0-or-later",
@@ -18,30 +18,15 @@
     "pnpm": ">=10.0.0"
   },
   "keywords": [
-    "calm",
-    "environment",
-    "health",
-    "meditation",
-    "mindfulness",
-    "nature",
-    "ocean",
-    "peace",
-    "relaxation",
-    "serenity",
-    "spirituality",
-    "surf",
-    "surfing",
-    "tranquility",
-    "water",
-    "waves",
-    "wellness",
-    "zen"
+    "halloween",
+    "haunted",
+    "house"
   ],
   "scripts": {
     "audit-ci": "audit-ci --config audit-ci.json",
     "build": "tsc && vite build",
     "clean": "rm -rf dist node_modules",
-    "deploy": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:SwellPatrol/swellpatrol.github.io.git --dist dist --dotfiles",
+    "deploy": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:LakotaLoop/lakotaloop.github.io.git --dist dist --dotfiles",
     "dev": "vite dev --host",
     "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint .",
