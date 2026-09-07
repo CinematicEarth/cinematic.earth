@@ -37,10 +37,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@lightningjs/sdk/src/Settings": resolve(
-        "./node_modules/.pnpm/@lightningjs+sdk@5.5.5/node_modules/@lightningjs/sdk/src/Settings/index.js",
+        "./node_modules/@lightningjs/sdk/src/Settings/index.js",
       ),
       "@metrological/sdk": resolve(
-        "./node_modules/.pnpm/@metrological+sdk@1.0.2/node_modules/@metrological/sdk/index.js",
+        "./node_modules/@metrological/sdk/index.js",
       ),
     },
   },

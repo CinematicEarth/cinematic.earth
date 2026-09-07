@@ -1,0 +1,3 @@
+allowBuilds:
+  "@lightningjs/sdk": true
+  core-js: true
