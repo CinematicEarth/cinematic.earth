@@ -11,18 +11,19 @@ import type shaka from "shaka-player";
 /** iPhone Safari exposes video fullscreen through its own presentation API. */
 type FullscreenVideoElement = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
 };
 
 /** Connect the single play button to video playback and fullscreen. */
 export function launchApp(): void {
-  const appElement: HTMLElement | null = document.querySelector("#app");
   const videoElement: FullscreenVideoElement | null =
     document.querySelector<FullscreenVideoElement>("#background-video");
   const playButton: HTMLButtonElement | null =
     document.querySelector<HTMLButtonElement>("#play-button");
 
-  if (appElement === null || videoElement === null || playButton === null) {
-    throw new Error("The app, video, or play button is missing from the page.");
+  if (videoElement === null || playButton === null) {
+    throw new Error("The video or play button is missing from the page.");
   }
 
   const streamUrl: string =
@@ -30,10 +31,28 @@ export function launchApp(): void {
   let shakaPlayer: shaka.Player | null = null;
   let streamLoaded: boolean = false;
 
-  /** Keep the page black whenever playback is stopped or cannot start. */
+  /** Return to the black screen after the video ends or playback fails. */
   const showPlayButton: () => void = (): void => {
     videoElement.style.visibility = "hidden";
     playButton.hidden = false;
+
+    // The play/retry button lives outside the fullscreen video. Return to the
+    // page when finished or after an error so the button remains reachable.
+    if (document.fullscreenElement === videoElement) {
+      void document.exitFullscreen().catch((error: unknown): void => {
+        console.warn("Could not leave fullscreen", error);
+      });
+    } else if (
+      videoElement.webkitDisplayingFullscreen &&
+      typeof videoElement.webkitExitFullscreen === "function"
+    ) {
+      // iPhone video fullscreen is separate from the standard Fullscreen API.
+      try {
+        videoElement.webkitExitFullscreen();
+      } catch (error: unknown) {
+        console.warn("Could not leave fullscreen", error);
+      }
+    }
   };
 
   /** Leave a usable retry button instead of getting stuck on a blank screen. */
@@ -61,11 +80,11 @@ export function launchApp(): void {
     playButton.removeAttribute("title");
     playButton.setAttribute("aria-label", "Play video with sound");
   });
-  videoElement.addEventListener("pause", (): void => {
-    // A completed video stays on its final frame without another overlay.
-    if (!videoElement.ended) {
-      showPlayButton();
-    }
+  // Native controls handle pause and seeking without hiding the video.
+  videoElement.addEventListener("ended", (): void => {
+    showPlayButton();
+    // Keep Shaka's prepared stream so the next click can replay immediately.
+    videoElement.currentTime = 0;
   });
   videoElement.addEventListener("error", (): void => {
     handlePlaybackError(videoElement.error);
@@ -140,15 +159,17 @@ export function launchApp(): void {
     // Awaiting playback here would lose the gesture needed for fullscreen.
     void startPlayback();
 
-    // Fullscreen the black container to preserve the centered picture and bars.
+    // Fullscreen the video itself so the browser provides its built-in video UI
+    // and Firefox recognizes fullscreen media.
     // If the browser denies fullscreen, allow Shaka playback to continue inline.
     try {
       if (!document.fullscreenElement) {
         if (
           document.fullscreenEnabled &&
-          typeof appElement.requestFullscreen === "function"
+          typeof videoElement.requestFullscreen === "function"
         ) {
-          void appElement
+          videoElement.style.visibility = "visible";
+          void videoElement
             .requestFullscreen({ navigationUI: "hide" })
             .catch((error: unknown): void => {
               console.warn("Could not enter fullscreen", error);
