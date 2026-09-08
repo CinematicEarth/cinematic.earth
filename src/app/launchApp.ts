@@ -20,7 +20,7 @@ export function launchApp(): void {
   }
 
   const streamUrl: string =
-    "https://stream.mux.com/7YtWnCpXIt014uMcBK65ZjGfnScdcAneU9TjM9nGAJhk.m3u8";
+    "https://stream.mux.com/dDkIbyl402OA1QkR3CgEMVUQltsjzF1ulB4579ff7sB8.m3u8";
   let shakaPlayer: shaka.Player | null = null;
   let streamLoaded: boolean = false;
 
