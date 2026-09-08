@@ -1,7 +1,7 @@
 # lakotaloop.stream
 
 A minimal video page: a black screen with a centered play button. Click play
-to start the video with sound. The complete picture stays centered, with black
+to enter fullscreen and start the video with sound. The picture stays centered, with black
 bars wherever the viewport and video proportions differ. Playback stops on
 the final frame when the video ends. Shaka Player handles all stream playback.
 

@@ -8,15 +8,21 @@
 
 import type shaka from "shaka-player";
 
-/** Connect the single play button to the inline video. */
+/** iPhone Safari exposes video fullscreen through its own presentation API. */
+type FullscreenVideoElement = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+};
+
+/** Connect the single play button to video playback and fullscreen. */
 export function launchApp(): void {
-  const videoElement: HTMLVideoElement | null =
-    document.querySelector<HTMLVideoElement>("#background-video");
+  const appElement: HTMLElement | null = document.querySelector("#app");
+  const videoElement: FullscreenVideoElement | null =
+    document.querySelector<FullscreenVideoElement>("#background-video");
   const playButton: HTMLButtonElement | null =
     document.querySelector<HTMLButtonElement>("#play-button");
 
-  if (videoElement === null || playButton === null) {
-    throw new Error("The video and play button are missing from the page.");
+  if (appElement === null || videoElement === null || playButton === null) {
+    throw new Error("The app, video, or play button is missing from the page.");
   }
 
   const streamUrl: string =
@@ -130,6 +136,31 @@ export function launchApp(): void {
       }
     };
 
+    // Start audio first, then request fullscreen in this same click handler.
+    // Awaiting playback here would lose the gesture needed for fullscreen.
     void startPlayback();
+
+    // Fullscreen the black container to preserve the centered picture and bars.
+    // If the browser denies fullscreen, allow Shaka playback to continue inline.
+    try {
+      if (!document.fullscreenElement) {
+        if (
+          document.fullscreenEnabled &&
+          typeof appElement.requestFullscreen === "function"
+        ) {
+          void appElement
+            .requestFullscreen({ navigationUI: "hide" })
+            .catch((error: unknown): void => {
+              console.warn("Could not enter fullscreen", error);
+            });
+        } else if (typeof videoElement.webkitEnterFullscreen === "function") {
+          // This changes presentation only; Shaka still owns the video stream.
+          videoElement.style.visibility = "visible";
+          videoElement.webkitEnterFullscreen();
+        }
+      }
+    } catch (error: unknown) {
+      console.warn("Could not enter fullscreen", error);
+    }
   });
 }
