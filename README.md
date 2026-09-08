@@ -1,14 +1,13 @@
-# meditation.surf
+# lakotaloop.stream
 
-Welcome to the _meditation.surf_ Lightning 3 Blits App!
+A minimal video page: a black screen with a centered play button. Click play
+to start the video with sound. The complete picture stays centered, with black
+bars wherever the viewport and video proportions differ. Playback stops on
+the final frame when the video ends. Shaka Player handles all stream playback.
 
 ### Getting started
 
 Follow the steps below to get the app up and running in no time.
-
-#### IDE setup
-
-It is highly recommended to install the Blits [VS Code extension](https://marketplace.visualstudio.com/items?itemName=LightningJS.lightning-blits) which will give you template highlighting and improved autocompletion.
 
 #### Node setup (NVM and npm)
 
@@ -94,9 +93,3 @@ After adding new dependencies, check for security issues with:
 ```sh
 pnpm audit-ci
 ```
-
-### Resources
-
-- [Blits documentation](https://lightningjs.io/v3-docs/blits/getting_started/intro.html) - official documentation
-- [Blits Example App](https://blits-demo.lightningjs.io/?source=true) - a great reference to learn by example
-- [Blits Components](https://lightningjs.io/blits-components.html) - off-the-shelf, basic and performant reference components

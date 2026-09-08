@@ -6,21 +6,14 @@
  * See the file LICENSE.txt for more information.
  */
 
-import blitsVitePlugins from "@lightningjs/blits/vite";
 import { defineConfig } from "vite";
-import { resolve } from "path";
 
-// Vite configuration for the LightningJS-based application. The configuration
-// is intentionally simple and primarily enables the Blits plugin along with the
-// cross-origin headers required for certain browser APIs.
+// The app uses plain HTML and TypeScript; no UI renderer plugins are needed.
 
 export default defineConfig({
   // Base path for all assets in production. Change this to "/myApp/" if the
   // site is deployed under a subdirectory.
   base: "/",
-
-  // Use the Blits plugin to add LightningJS support during build and dev
-  plugins: [...blitsVitePlugins],
 
   server: {
     headers: {
@@ -31,21 +24,5 @@ export default defineConfig({
       // or Cross-Origin-Resource-Policy headers.
       "Cross-Origin-Embedder-Policy": "credentialless",
     },
-  },
-
-  // Ensure internal Lightning modules can be bundled by the dev server
-  resolve: {
-    alias: {
-      "@lightningjs/sdk/src/Settings": resolve(
-        "./node_modules/@lightningjs/sdk/src/Settings/index.js",
-      ),
-      "@metrological/sdk": resolve(
-        "./node_modules/@metrological/sdk/index.js",
-      ),
-    },
-  },
-
-  optimizeDeps: {
-    include: ["@lightningjs/sdk/src/Settings", "@metrological/sdk"],
   },
 });

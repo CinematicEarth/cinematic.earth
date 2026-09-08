@@ -36,9 +36,6 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@lightningjs/blits": "^2.8.9",
-    "@lightningjs/sdk": "^5.5.7",
-    "@metrological/sdk": "^1.0.2",
     "shaka-player": "^5.2.9"
   },
   "devDependencies": {

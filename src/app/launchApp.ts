@@ -1,94 +1,135 @@
 /*
- * Copyright (C) 2025 Garrett Brown
+ * Copyright (C) 2026 Garrett Brown
  * This file is part of meditation.surf - https://github.com/eigendude/meditation.surf
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
  * See the file LICENSE.txt for more information.
  */
 
-import Blits from "@lightningjs/blits";
+import type shaka from "shaka-player";
 
-import { debounce } from "../utils/debounce";
-import LightningApp from "./LightningApp";
-import videoPlayerState from "./VideoPlayerState";
+/** Connect the single play button to the inline video. */
+export function launchApp(): void {
+  const videoElement: HTMLVideoElement | null =
+    document.querySelector<HTMLVideoElement>("#background-video");
+  const playButton: HTMLButtonElement | null =
+    document.querySelector<HTMLButtonElement>("#play-button");
 
-/**
- * Milliseconds to wait before applying the final size after a resize
- */
-const COOL_DOWN_MS: number = 100;
-
-/**
- * Launch the LightningJS application sized to the current viewport
- */
-function launchLightningApp(width: number, height: number): void {
-  Blits.Launch(LightningApp, "app", {
-    w: width,
-    h: height,
-  });
-}
-
-/**
- * Launch the app, replacing any existing canvas
- */
-function startApp(width: number, height: number): void {
-  const mount: HTMLElement = document.getElementById("app") as HTMLElement;
-  const oldCanvas: HTMLCanvasElement | null = mount.querySelector("canvas");
-  const previousApp: unknown | null = videoPlayerState.getAppInstance();
-
-  // Clean up the old Lightning application to free its WebGL context before
-  // launching a new one. This avoids accumulating WebGL contexts if the
-  // destruction fails due to race conditions in the underlying Blits APIs.
-  if (previousApp !== null) {
-    const instance: any = previousApp as any;
-    try {
-      if (typeof instance.quit === "function") {
-        // Prefer `quit()` because it handles renderer shutdown internally.
-        instance.quit();
-      } else if (typeof instance.destroy === "function") {
-        // Fall back to the lower level destroy if no quit method exists.
-        instance.destroy();
-      }
-    } catch (error: unknown) {
-      console.warn("Failed to destroy previous Lightning app", error);
-    } finally {
-      // Remove reference so we do not attempt to destroy again.
-      videoPlayerState.clearAppInstance();
-    }
-
-    if (oldCanvas !== null) {
-      oldCanvas.remove();
-    }
+  if (videoElement === null || playButton === null) {
+    throw new Error("The video and play button are missing from the page.");
   }
 
-  // Launch the new LightningJS canvas after the previous instance has been
-  // destroyed. This prevents WebGL context leakage and the associated console
-  // warnings.
-  launchLightningApp(width, height);
+  const streamUrl: string =
+    "https://stream.mux.com/7YtWnCpXIt014uMcBK65ZjGfnScdcAneU9TjM9nGAJhk.m3u8";
+  let shakaPlayer: shaka.Player | null = null;
+  let streamLoaded: boolean = false;
 
-  const positionCanvas = (): void => {
-    const canvas: HTMLCanvasElement | null = mount.querySelector("canvas");
-    if (canvas !== null) {
-      canvas.style.position = "absolute";
-      canvas.style.top = "0";
-      canvas.style.left = "0";
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-      canvas.style.zIndex = "1";
-    }
+  /** Keep the page black whenever playback is stopped or cannot start. */
+  const showPlayButton: () => void = (): void => {
+    videoElement.style.visibility = "hidden";
+    playButton.hidden = false;
   };
-  window.setTimeout(positionCanvas, 0);
-}
 
-/**
- * Start the app and watch for window size changes
- */
-export function launchApp(): void {
-  const debouncedStartApp: (...errArgs: Parameters<typeof startApp>) => void =
-    debounce(startApp, COOL_DOWN_MS);
+  /** Leave a usable retry button instead of getting stuck on a blank screen. */
+  const handlePlaybackError: (errError: unknown) => void = (
+    errError: unknown,
+  ): void => {
+    console.error("Video playback failed", errError);
+    // A permission failure does not invalidate the prepared stream. Keep it
+    // ready so another click can call play() without awaiting a network load.
+    if (!(errError instanceof Error && errError.name === "NotAllowedError")) {
+      streamLoaded = false;
+    }
+    videoElement.pause();
+    showPlayButton();
+    playButton.disabled = false;
+    playButton.setAttribute("aria-label", "Retry video playback with sound");
+    playButton.title = "Playback failed. Click to try again.";
+  };
 
-  window.addEventListener("resize", (): void => {
-    debouncedStartApp(window.innerWidth, window.innerHeight);
+  // Reveal the picture only when frames actually start playing, so neither a
+  // poster nor a paused first frame can appear on the initial black screen.
+  videoElement.addEventListener("playing", (): void => {
+    videoElement.style.visibility = "visible";
+    playButton.hidden = true;
+    playButton.removeAttribute("title");
+    playButton.setAttribute("aria-label", "Play video with sound");
+  });
+  videoElement.addEventListener("pause", (): void => {
+    // A completed video stays on its final frame without another overlay.
+    if (!videoElement.ended) {
+      showPlayButton();
+    }
+  });
+  videoElement.addEventListener("error", (): void => {
+    handlePlaybackError(videoElement.error);
   });
 
-  startApp(window.innerWidth, window.innerHeight);
+  /** Always prepare the stream through Shaka, regardless of native HLS support. */
+  const loadShakaStream: () => Promise<void> = async (): Promise<void> => {
+    if (shakaPlayer === null) {
+      const shakaModule: { default: typeof shaka } =
+        await import("shaka-player");
+      const shakaLibrary: typeof shaka = shakaModule.default;
+      shakaLibrary.polyfill.installAll();
+
+      if (!shakaLibrary.Player.isBrowserSupported()) {
+        throw new Error("This browser does not support the video stream.");
+      }
+
+      shakaPlayer = new shakaLibrary.Player();
+      shakaPlayer.addEventListener("error", (event: Event): void => {
+        const playbackError: shaka.util.Error = (
+          event as CustomEvent<shaka.util.Error>
+        ).detail;
+
+        // Let Shaka retry recoverable network errors without stopping playback.
+        if (
+          playbackError.severity === shakaLibrary.util.Error.Severity.CRITICAL
+        ) {
+          handlePlaybackError(playbackError);
+        }
+      });
+    }
+
+    await shakaPlayer.attach(videoElement);
+    await shakaPlayer.load(streamUrl);
+  };
+
+  // Prepare the hidden video before enabling play. The eventual click can then
+  // call play() directly, preserving the user gesture required for Safari audio.
+  playButton.disabled = true;
+  void loadShakaStream()
+    .then((): void => {
+      streamLoaded = true;
+    })
+    .catch(handlePlaybackError)
+    .finally((): void => {
+      playButton.disabled = false;
+    });
+
+  playButton.addEventListener("click", (): void => {
+    /** Prevent duplicate loads while the stream is being prepared. */
+    const startPlayback: () => Promise<void> = async (): Promise<void> => {
+      playButton.disabled = true;
+
+      try {
+        if (!streamLoaded) {
+          await loadShakaStream();
+          streamLoaded = true;
+        }
+
+        // Every explicit start includes sound, regardless of old mute settings.
+        videoElement.muted = false;
+        videoElement.volume = 1;
+        await videoElement.play();
+      } catch (error: unknown) {
+        handlePlaybackError(error);
+      } finally {
+        playButton.disabled = false;
+      }
+    };
+
+    void startPlayback();
+  });
 }
