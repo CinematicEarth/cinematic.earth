@@ -26,11 +26,11 @@
     "audit-ci": "audit-ci --config audit-ci.json",
     "build": "tsc && vite build",
     "clean": "rm -rf dist node_modules",
-    "deploy": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:LakotaLoop/lakotaloop.github.io.git --dist dist --dotfiles",
     "dev": "vite dev --host",
     "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint .",
     "preview": "vite preview",
+    "push": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:LakotaLoop/lakotaloop.github.io.git --dist dist --dotfiles",
     "start": "vite",
     "test": "vitest run --passWithNoTests",
     "test:ui": "vitest --ui"
