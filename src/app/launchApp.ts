@@ -33,6 +33,9 @@ export function launchApp(): void {
 
   /** Return to the black screen after the video ends or playback fails. */
   const showPlayButton: () => void = (): void => {
+    // Tear down the native UI while idle so the next Play initializes it against
+    // the visible video, rather than reusing controls created while hidden.
+    videoElement.controls = false;
     videoElement.style.visibility = "hidden";
     playButton.hidden = false;
 
@@ -72,11 +75,9 @@ export function launchApp(): void {
     playButton.title = "Playback failed. Click to try again.";
   };
 
-  // Reveal the picture only when frames actually start playing, so neither a
-  // poster nor a paused first frame can appear on the initial black screen.
+  // Clear retry messaging once playback succeeds. Native controls stay
+  // available when the user pauses or seeks through the video.
   videoElement.addEventListener("playing", (): void => {
-    videoElement.style.visibility = "visible";
-    playButton.hidden = true;
     playButton.removeAttribute("title");
     playButton.setAttribute("aria-label", "Play video with sound");
   });
@@ -134,6 +135,13 @@ export function launchApp(): void {
     });
 
   playButton.addEventListener("click", (): void => {
+    // Firefox builds its native controls when the controls property is enabled.
+    // Reveal the video first so those controls initialize in the visible layout,
+    // before either inline playback or the transition into video fullscreen.
+    videoElement.style.visibility = "visible";
+    videoElement.controls = true;
+    playButton.hidden = true;
+
     /** Prevent duplicate loads while the stream is being prepared. */
     const startPlayback: () => Promise<void> = async (): Promise<void> => {
       playButton.disabled = true;
@@ -149,6 +157,17 @@ export function launchApp(): void {
         videoElement.volume = 1;
         await videoElement.play();
       } catch (error: unknown) {
+        // Native Pause can cancel play() while frames are still buffering. That
+        // cancellation is normal: keep the visible video and controls so the
+        // user can resume, instead of returning to the initial black screen.
+        if (
+          error instanceof DOMException &&
+          error.name === "AbortError" &&
+          videoElement.paused &&
+          videoElement.error === null
+        ) {
+          return;
+        }
         handlePlaybackError(error);
       } finally {
         playButton.disabled = false;
@@ -168,7 +187,6 @@ export function launchApp(): void {
           document.fullscreenEnabled &&
           typeof videoElement.requestFullscreen === "function"
         ) {
-          videoElement.style.visibility = "visible";
           void videoElement
             .requestFullscreen({ navigationUI: "hide" })
             .catch((error: unknown): void => {
@@ -176,7 +194,6 @@ export function launchApp(): void {
             });
         } else if (typeof videoElement.webkitEnterFullscreen === "function") {
           // This changes presentation only; Shaka still owns the video stream.
-          videoElement.style.visibility = "visible";
           videoElement.webkitEnterFullscreen();
         }
       }
