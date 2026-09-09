@@ -7,3 +7,6 @@
 
 # Project ignorables
 /scripts/world
+
+# macOS ignorables
+.DS_Store
