@@ -1,15 +1,15 @@
 {
-  "name": "lakotaloop.stream",
+  "name": "cinematic.earth",
   "version": "1.0.0",
   "type": "module",
-  "description": "Halloween 2025 at Lakota Loop",
+  "description": "Stunning Earth cinematography from Rick Memsic",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LakotaLoop/lakotaloop.stream.git"
+    "url": "git+https://github.com/CinematicEarth/cinematic.earth.git"
   },
-  "homepage": "https://lakotaloop.stream",
+  "homepage": "https://cinematic.earth",
   "bugs": {
-    "url": "https://github.com/LakotaLoop/lakotaloop.stream/issues"
+    "url": "https://github.com/CinematicEarth/cinematic.earth/issues"
   },
   "author": "Garrett Brown <eigendebugger@gmail.com>",
   "license": "AGPL-3.0-or-later",
@@ -18,9 +18,24 @@
     "pnpm": ">=10.0.0"
   },
   "keywords": [
-    "halloween",
-    "haunted",
-    "house"
+    "calm",
+    "environment",
+    "health",
+    "meditation",
+    "mindfulness",
+    "nature",
+    "ocean",
+    "peace",
+    "relaxation",
+    "serenity",
+    "spirituality",
+    "surf",
+    "surfing",
+    "tranquility",
+    "water",
+    "waves",
+    "wellness",
+    "zen"
   ],
   "scripts": {
     "audit-ci": "audit-ci --config audit-ci.json",
@@ -30,7 +45,7 @@
     "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint .",
     "preview": "vite preview",
-    "push": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:LakotaLoop/lakotaloop.github.io.git --dist dist --dotfiles",
+    "push": "pnpm build && gh-pages --branch main --repo git@github.com-eigendude:CinematicEarth/cinematicearth.github.io.git --dist dist --dotfiles",
     "start": "vite",
     "test": "vitest run --passWithNoTests",
     "test:ui": "vitest --ui"

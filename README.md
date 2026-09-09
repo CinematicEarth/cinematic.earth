@@ -1,4 +1,4 @@
-# lakotaloop.stream
+# cinematic.earth
 
 A minimal video page: a black screen with a centered play button. Click play
 to enter fullscreen and start the video with sound. The picture stays centered, with black
