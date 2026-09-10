@@ -2,15 +2,28 @@
   "name": "cinematic.earth",
   "short_name": "cinematic.earth",
   "description": "Stunning Earth cinematography from Rick Memsic",
-  "start_url": ".",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#ffffff",
+  "theme_color": "#000000",
   "icons": [
     {
-      "src": "assets/icon-1500x1500.png",
+      "src": "/assets/icon-192x192.png",
       "type": "image/png",
-      "sizes": "1500x1500"
+      "sizes": "192x192"
+    },
+    {
+      "src": "/assets/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    },
+    {
+      "src": "/assets/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

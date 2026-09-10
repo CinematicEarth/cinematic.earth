@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 Garrett Brown
+ * Copyright (C) 2026 Garrett Brown
  * This file is part of cinematic.earth - https://github.com/CinematicEarth/cinematic.earth
  *
  * SPDX-License-Identifier: AGPL-3.0-or-later
@@ -14,15 +14,4 @@ export default defineConfig({
   // Base path for all assets in production. Change this to "/myApp/" if the
   // site is deployed under a subdirectory.
   base: "/",
-
-  server: {
-    headers: {
-      // Required to enable SharedArrayBuffer and other security-sensitive
-      // browser features. Both headers are needed for proper isolation.
-      "Cross-Origin-Opener-Policy": "same-origin",
-      // Use `credentialless` so the demo video can be fetched without CORS
-      // or Cross-Origin-Resource-Policy headers.
-      "Cross-Origin-Embedder-Policy": "credentialless",
-    },
-  },
 });
